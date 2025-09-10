@@ -17,26 +17,6 @@ With personal dashboards, daily check-ins, social features (follow/unfollow), an
 
 👤 Profile Page – View insights, habits, and recent activity
 
-DEMO SCREENSHOTS
-
-### SIGNUP PAGE
-
-![SIGNUP PAGE](images/Screenshot(93).png)
-
-### SIGNIN PAGE
-![SIGNIN PAGE](images/Screenshot(94).png)
-
-### HOME PAGE
-![Home Page](images/Screenshot(95).png)
-
-### Dashboard
-![Dashboard](images/Screenshot(96).png)
-
-### FRIENDS FEED
-![Home Page](images/Screenshot(97).png)
-
-### PROFILE PAGE
-![Dashboard](images/Screenshot(98).png)
 
 🛠️ Tech Stack
 
