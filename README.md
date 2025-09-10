@@ -115,3 +115,24 @@ POST /api/users/:id/unfollow → Unfollow user
 
 GET /api/users/feed → Get activity feed
 
+
+DEMO :
+
+## Signup Page
+![signup Page](assets/signup.png)
+
+## Signin Page
+![signin Page](assets/signin.png)
+
+## Home Page
+![Home Page](assets/home.png)
+
+## Dashboard
+![Dashboard](assets/dashboard.png)
+
+## Friends Feed
+![Friends Feed](assets/friends.png)
+
+## Profile
+![Profile](assets/profile.png)
+
