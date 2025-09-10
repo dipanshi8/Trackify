@@ -5,8 +5,8 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
-    
+    "dev": "nodemon backend/server.js",
+    "build": "react-scripts build"
   },
   "keywords": [],
   "author": "",
