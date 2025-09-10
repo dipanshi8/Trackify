@@ -17,6 +17,28 @@ With personal dashboards, daily check-ins, social features (follow/unfollow), an
 
 👤 Profile Page – View insights, habits, and recent activity
 
+DEMO :
+
+## Signup Page
+![signup Page](signup.png)
+
+## Signin Page
+![signin Page](signin.png)
+
+## Home Page
+![Home Page](home.png)
+
+## Dashboard
+![Dashboard](dashboard.png)
+
+## Friends Feed
+![Friends Feed](friends.png)
+
+## Profile
+![Profile](/profile.png)
+
+
+
 
 🛠️ Tech Stack
 
@@ -110,6 +132,11 @@ POST /api/users/:id/follow → Follow user
 POST /api/users/:id/unfollow → Unfollow user
 
 GET /api/users/feed → Get activity feed
+
+
+
+
+
 
 
 
