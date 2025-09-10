@@ -3,11 +3,6 @@ Trackify – Habit Tracker
 A full-stack habit tracking web app that helps users build habits, stay consistent, and stay motivated.
 With personal dashboards, daily check-ins, social features (follow/unfollow), and a live feed, Trackify turns self-improvement into a community experience.
 
-🚀 Live Demo
-
-🔗 Deployed App
- (replace with your actual deployed URL)
-
 ✨ Features
 
 🔐 Authentication – Register/Login with JWT
@@ -42,9 +37,9 @@ JWT for authentication
 
 Deployment
 
-Frontend → Netlify / Vercel
+Frontend → Vercel
 
-Backend → Render / Railway
+Backend → Render
 
 Database → MongoDB Atlas
 
@@ -61,9 +56,9 @@ npm install
 Create a .env file in backend/:
 
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-FRONTEND_URL=http://localhost:3000
+MONGO_URI=mongodb+srv://yaduvanshidips25_db_user:baN8ufhQqU0qGmGs@trackify.of744pl.mongodb.net/?retryWrites=true&w=majority&appName=Trackify
+JWT_SECRET=Hellu@1212
+FRONTEND_URL=https://trackify-ggjb.vercel.app/
 
 
 Run backend:
