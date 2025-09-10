@@ -1,0 +1,33 @@
+------POSTMAN API TESTING--------
+1.FOR REGISTER -POST
+http://localhost:5000/api/auth/register
+username, email,password
+
+
+2.FOR LOGIN --POST
+http://localhost:5000/api/auth/login
+emailOrUsername ,password
+
+
+3.CREATE A HABIT----POST
+http://localhost:5000/api/habits
+name, description  , frequency
+
+4.GET HABITS--GET
+http://localhost:5000/api/habits
+nothing in body
+
+
+5.UPDATE HABIT---PUT
+http://localhost:5000/api/habits/:id
+name , frequency
+
+
+6.DELETE HABIT ---DELETE
+http://localhost:5000/api/habits/:id
+nothing in body
+
+
+
+
+

@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* basic style to resemble the theme you showed */
+body { @apply bg-white text-gray-800; }
+.btn-brand { @apply bg-brandRed text-white px-4 py-2 rounded shadow; }
+.card { @apply bg-white rounded p-4 shadow; }
