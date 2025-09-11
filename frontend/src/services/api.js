@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'https://trackify-1-j03x.onrender.com/'
+  baseURL: 'https://trackify-1-j03x.onrender.com/api'
 });
 
 
