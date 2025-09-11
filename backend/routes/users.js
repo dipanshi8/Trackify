@@ -32,6 +32,40 @@ router.get('/search', auth, async (req, res) => {
   }
 });
 
+
+
+/**
+ * GET /api/users/feed
+ * Recent check-ins from followed users
+ */
+
+
+router.get('/feed', auth, async (req, res) => {
+  try {
+    const following = req.user.following || [];
+    const feed = await CheckIn.find({ userId: { $in: following } })
+      .sort({ timestamp: -1 })
+      .limit(50)
+      .populate('userId', 'username')
+      .populate('habitId', 'name category frequency');
+
+    const result = feed.map(f => ({
+      id: f._id,
+      user: f.userId.username,
+      habit: f.habitId.name,
+      category: f.habitId.category,
+      frequency: f.habitId.frequency,
+      timestamp: f.timestamp
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 /**
  * GET /api/users/:id
  * Get user info for profile page
@@ -128,33 +162,5 @@ router.post('/:id/unfollow', auth, async (req, res) => {
   }
 });
 
-/**
- * GET /api/users/feed
- * Recent check-ins from followed users
- */
-router.get('/feed', auth, async (req, res) => {
-  try {
-    const following = req.user.following || [];
-    const feed = await CheckIn.find({ userId: { $in: following } })
-      .sort({ timestamp: -1 })
-      .limit(50)
-      .populate('userId', 'username')
-      .populate('habitId', 'name category frequency');
-
-    const result = feed.map(f => ({
-      id: f._id,
-      user: f.userId.username,
-      habit: f.habitId.name,
-      category: f.habitId.category,
-      frequency: f.habitId.frequency,
-      timestamp: f.timestamp
-    }));
-
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 module.exports = router;
