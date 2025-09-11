@@ -20,6 +20,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/habits", habitRoutes);
 app.use("/api/users", userRoutes);
 
+// after all routes
+app.get("/", (req, res) => {
+  res.json({ message: "Backend is running 🚀" });
+});
+
 
 // Error handler
 app.use((err, req, res, next) => {
