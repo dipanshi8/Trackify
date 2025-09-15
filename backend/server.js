@@ -12,8 +12,14 @@ dotenv.config();
 connectDB();
 
 const app = express();
+
 app.use(express.json());
-app.use(cors({ origin: process.env.FRONTEND_URL || "https://trackify-ggjb.vercel.app/" }));
+app.use(cors({
+  origin: ["https://trackify-ggjb.vercel.app"], // no trailing slash
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
+
 
 // API routes
 app.use("/api/auth", authRoutes);
