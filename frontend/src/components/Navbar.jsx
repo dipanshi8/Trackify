@@ -16,59 +16,81 @@ export default function Navbar({ user, setUser }) {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white border-b shadow-sm">
-      {/* Logo / Brand */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded bg-brandRed text-white flex items-center justify-center font-bold">
-          T
+    <nav className="sticky top-0 z-50 backdrop-blur-md bg-dark-card/80 border-b border-dark-border shadow-soft">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo / Brand */}
+          <Link to={currentUser ? "/dashboard" : "/"} className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-primary via-accent-secondary to-accent-cyan 
+                          flex items-center justify-center font-bold text-white
+                          shadow-lg shadow-accent-primary/30
+                          group-hover:shadow-glow group-hover:scale-105
+                          transition-all duration-300">
+              T
+            </div>
+            <div className="text-xl font-bold bg-gradient-to-r from-accent-primary to-accent-cyan bg-clip-text text-transparent">
+              Trackify
+            </div>
+          </Link>
+
+          {/* Links */}
+          <div className="flex items-center gap-6">
+            {currentUser && (
+              <>
+                <Link 
+                  to="/dashboard" 
+                  className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors duration-200"
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/feed" 
+                  className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors duration-200"
+                >
+                  Feed
+                </Link>
+              </>
+            )}
+
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                {/* My Profile */}
+                <Link
+                  to={`/profile/${currentUser.id}`}
+                  className="px-4 py-2 rounded-lg bg-dark-hover text-sm font-medium text-text-secondary 
+                           hover:text-text-primary hover:bg-dark-card border border-dark-border
+                           transition-all duration-200"
+                >
+                  Profile
+                </Link>
+
+                {/* Sign out */}
+                <button
+                  className="btn-primary px-4 py-2 text-sm"
+                  onClick={logout}
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-3">
+                <Link
+                  to="/signin"
+                  className="btn-ghost"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="btn-primary px-4 py-2 text-sm"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="text-lg font-semibold">Trackify</div>
       </div>
-
-      {/* Links */}
-      <div className="flex items-center gap-4">
-        <Link to="/dashboard" className="text-sm hover:text-brandRed transition">
-          Dashboard
-        </Link>
-        <Link to="/feed" className="text-sm hover:text-brandRed transition">
-          Feed
-        </Link>
-
-        {currentUser ? (
-          <div className="flex items-center gap-3">
-            {/* My Profile */}
-            <Link
-              to={`/profile/${currentUser.id}`}
-              className="px-3 py-1 rounded bg-gray-100 text-sm hover:bg-gray-200 transition"
-            >
-              My Profile
-            </Link>
-
-            {/* Sign out */}
-            <button
-              className="btn-brand px-3 py-1 text-sm"
-              onClick={logout}
-            >
-              Sign out
-            </button>
-          </div>
-        ) : (
-          <div className="flex gap-2">
-            <Link
-              to="/signin"
-              className="px-3 py-1 border rounded hover:bg-gray-100 text-sm"
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/signup"
-              className="btn-brand text-sm"
-            >
-              Sign up
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
+    </nav>
   );
 }

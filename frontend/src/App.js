@@ -11,9 +11,6 @@ import SearchUsers from './pages/SearchUsers';
 
 import Profile from "./pages/Profile";
 
-<Route path="/profile/:id" element={<Profile />} />
-
-
 function App() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
 

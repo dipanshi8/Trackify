@@ -35,39 +35,56 @@ export default function Dashboard() {
   const topStreaks = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0)).slice(0, 3);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden overflow-y-auto bg-gray-100 p-8">
-
-      <div className="relative max-w-7xl mx-auto space-y-12">
+    <div className="min-h-screen bg-dark-bg py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h1 className="text-4xl font-extrabold text-gray-800">Welcome back! 👋</h1>
-          
+          <div>
+            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-accent-primary to-accent-cyan bg-clip-text text-transparent">
+              Welcome back! 👋
+            </h1>
+            <p className="text-text-muted">Track your progress and build better habits</p>
+          </div>
         </div>
 
-        {/* Stats Bento Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="relative rounded-2xl p-6 text-white bg-gradient-to-tr from-orange-400 to-pink-500 overflow-hidden shadow-lg transform hover:scale-105 transition-all duration-500">
-            <Target className="absolute right-4 top-4 text-white/20 w-16 h-16" />
-            <p className="text-2xl font-bold">{totalHabits}</p>
-            <p className="mt-2 text-sm">Active Habits</p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-3xl font-bold text-text-primary mb-1">{totalHabits}</p>
+                <p className="text-text-muted text-sm">Active Habits</p>
+              </div>
+              <Target className="w-12 h-12 text-accent-primary opacity-50 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
-          <div className="relative rounded-2xl p-6 text-white bg-gradient-to-tr from-green-400 to-emerald-500 overflow-hidden shadow-lg transform hover:scale-105 transition-all duration-500">
-            <Calendar className="absolute right-4 top-4 text-white/20 w-16 h-16" />
-            <p className="text-2xl font-bold">{activeStreaks}</p>
-            <p className="mt-2 text-sm">Active Streaks</p>
+          
+          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-3xl font-bold text-text-primary mb-1">{activeStreaks}</p>
+                <p className="text-text-muted text-sm">Active Streaks</p>
+              </div>
+              <Calendar className="w-12 h-12 text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
-          <div className="relative rounded-2xl p-6 text-white bg-gradient-to-tr from-purple-500 to-indigo-500 overflow-hidden shadow-lg transform hover:scale-105 transition-all duration-500">
-            <Flame className="absolute right-4 top-4 text-white/20 w-16 h-16" />
-            <p className="text-2xl font-bold">
-              {totalHabits ? `${Math.round((activeStreaks / totalHabits) * 100)}%` : "0%"}
-            </p>
-            <p className="mt-2 text-sm">Completion Rate</p>
+          
+          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-3xl font-bold text-text-primary mb-1">
+                  {totalHabits ? `${Math.round((activeStreaks / totalHabits) * 100)}%` : "0%"}
+                </p>
+                <p className="text-text-muted text-sm">Completion Rate</p>
+              </div>
+              <Flame className="w-12 h-12 text-accent-secondary opacity-50 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
 
         {/* Habit Form */}
-        <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transform transition-all duration-500">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">
+        <div className="card">
+          <h2 className="text-xl font-semibold mb-6 text-text-primary">
             {editingHabit ? "Edit Habit" : "Create a New Habit"}
           </h2>
           {editingHabit ? (
@@ -81,64 +98,75 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Habit Cards Grid */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-4">Your Habits</h2>
+            <h2 className="text-2xl font-bold mb-6 text-text-primary">Your Habits</h2>
             {habits.length > 0 ? (
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                 {habits.map((h) => (
-                  <div key={h._id} className="transform hover:scale-105 transition-all duration-500">
-                    <HabitCard
-                      habit={h}
-                      onEdit={() => setEditingHabit(h)}
-                      onUpdated={loadHabits}
-                      styleClass="bg-white/60 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300"
-                    />
-                  </div>
+                  <HabitCard
+                    key={h._id}
+                    habit={h}
+                    onEdit={() => setEditingHabit(h)}
+                    onUpdated={loadHabits}
+                  />
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 mt-4">No habits yet. Create your first one above!</p>
+              <div className="card text-center py-12">
+                <Target className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-50" />
+                <p className="text-text-muted">No habits yet. Create your first one above!</p>
+              </div>
             )}
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Recent Activity */}
-            <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500">
-              <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+            <div className="card">
+              <h3 className="text-lg font-semibold mb-4 text-text-primary">Recent Activity</h3>
               {recentActivity.length > 0 ? (
                 <ul className="space-y-3">
                   {recentActivity.map((h) => (
-                    <li key={h._id} className="flex items-center justify-between text-sm">
-                      <span>{h.name}</span>
-                      <span className="text-green-600 font-bold">✔ Today</span>
+                    <li key={h._id} className="flex items-center justify-between text-sm py-2 border-b border-dark-border last:border-0">
+                      <span className="text-text-secondary">{h.name}</span>
+                      <span className="text-green-400 font-semibold flex items-center gap-1">
+                        <CheckCircle2 size={14} />
+                        Today
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">No recent check-ins</p>
+                <p className="text-sm text-text-muted">No recent check-ins</p>
               )}
             </div>
 
             {/* Top Streaks */}
-            <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-500">
-              <h3 className="text-lg font-semibold mb-4">Top Streaks 🔥</h3>
+            <div className="card">
+              <h3 className="text-lg font-semibold mb-4 text-text-primary flex items-center gap-2">
+                <Flame className="text-accent-primary" size={20} />
+                Top Streaks
+              </h3>
               {topStreaks.length > 0 ? (
                 <ul className="space-y-3">
                   {topStreaks.map((h, i) => (
-                    <li key={h._id} className="flex justify-between text-sm">
-                      <span>#{i + 1} {h.name}</span>
-                      <span className="font-bold text-orange-600">{h.streak} days</span>
+                    <li key={h._id} className="flex justify-between items-center text-sm py-2">
+                      <span className="text-text-secondary">
+                        <span className="text-accent-primary font-bold">#{i + 1}</span> {h.name}
+                      </span>
+                      <span className="font-bold text-accent-cyan">{h.streak} days</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-500">No streaks yet</p>
+                <p className="text-sm text-text-muted">No streaks yet</p>
               )}
             </div>
 
             {/* Motivational Quote */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-6 rounded-2xl shadow-lg ">
-              <p className="italic">“Small daily improvements over time lead to stunning results.”</p>
+            <div className="card-gradient">
+              <p className="italic text-text-primary leading-relaxed">
+                "Small daily improvements over time lead to stunning results."
+              </p>
             </div>
           </div>
         </div>
