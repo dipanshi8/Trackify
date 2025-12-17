@@ -39,10 +39,21 @@ export default function Profile() {
     }
   }
 
+  // Get today's day of week (0 = Sunday, 1 = Monday, etc.)
+  const getTodayIndex = () => {
+    const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    // Convert to Monday = 0, Tuesday = 1, ..., Sunday = 6
+    return today === 0 ? 6 : today - 1;
+  };
+
+  const todayIndex = getTodayIndex();
+  const dayNames = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
   // Weekly activity helper
   const weeklyActivity = Array(7).fill(0).map((_, i) => ({
-    day: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"][i],
-    count: habits.reduce((acc, h) => acc + (h.activityThisWeek?.[i] || 0), 0)
+    day: dayNames[i],
+    count: habits.reduce((acc, h) => acc + (h.activityThisWeek?.[i] || 0), 0),
+    isToday: i === todayIndex
   }));
 
   // Habit categories
@@ -82,7 +93,7 @@ export default function Profile() {
     <div className="min-h-screen bg-dark-bg py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Profile Header Card */}
-        <div className="card-gradient relative overflow-hidden">
+        <div className="card-gradient relative overflow-hidden animate-slideUp" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <div className="relative z-10 p-8">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
               {/* Avatar */}
@@ -111,13 +122,17 @@ export default function Profile() {
                     <p className="text-sm text-text-muted">Avg Completion</p>
                   </div>
                 </div>
+                {/* Contextual microcopy */}
+                <p className="text-sm text-text-muted/80 mt-6 italic">
+                  Your consistency will show here once you start
+                </p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Weekly Activity Heatmap */}
-        <div className="card">
+        <div className="card animate-slideUp" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
           <h2 className="text-xl font-semibold flex items-center gap-2 mb-6 text-text-primary">
             <Calendar size={20} className="text-accent-primary" />
             This Week's Activity
@@ -125,6 +140,7 @@ export default function Profile() {
           <div className="grid grid-cols-7 gap-3 justify-center mb-3">
             {weeklyActivity.map((day) => {
               const intensity = day.count;
+              const isToday = day.isToday;
               const bgClass = intensity === 0 
                 ? "bg-dark-hover border-dark-border" 
                 : intensity <= 2 
@@ -132,22 +148,39 @@ export default function Profile() {
                 : intensity <= 4 
                 ? "bg-accent-primary/50 border-accent-primary/70" 
                 : "bg-accent-primary border-accent-primary";
+              
+              // Today gets special styling
+              const todayClass = isToday 
+                ? "border-2 border-accent-primary ring-2 ring-accent-primary/50 animate-pulse-today" 
+                : "";
+              
+              const tooltipText = intensity > 0 
+                ? `${day.day}: Habit completed` 
+                : `${day.day}: No habit logged`;
+              
               return (
                 <div
                   key={day.day}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium text-sm border transition-all hover:scale-110 ${bgClass} ${
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-medium text-sm border transition-all hover:scale-110 relative group ${bgClass} ${todayClass} ${
                     intensity > 0 ? "text-text-primary" : "text-text-muted"
                   }`}
-                  title={`${day.day}: ${day.count} activities`}
+                  title={tooltipText}
                 >
                   {day.count > 0 ? day.count : ""}
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-dark-card border border-dark-border rounded text-xs text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 shadow-soft">
+                    {tooltipText}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                      <div className="border-4 border-transparent border-t-dark-card"></div>
+                    </div>
+                  </div>
                 </div>
               );
             })}
           </div>
           <div className="grid grid-cols-7 gap-3 text-xs text-text-muted">
             {weeklyActivity.map((day) => (
-              <span key={day.day} className="text-center">
+              <span key={day.day} className={`text-center ${day.isToday ? "text-accent-primary font-semibold" : ""}`}>
                 {day.day}
               </span>
             ))}
@@ -155,7 +188,7 @@ export default function Profile() {
         </div>
 
         {/* Social Connections Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 animate-slideUp" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
           {/* Followers */}
           <div className="card group hover:border-accent-primary/50 transition-all">
             <div className="flex items-center justify-between">
@@ -189,7 +222,7 @@ export default function Profile() {
         </div>
 
         {/* Habit Categories Breakdown */}
-        <div className="card">
+        <div className="card animate-slideUp" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
           <h2 className="text-xl font-semibold flex items-center gap-2 mb-6 text-text-primary">
             <Target size={20} className="text-accent-primary" />
             Habit Categories

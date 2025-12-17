@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Plus, Target, Calendar, Flame, Circle, CheckCircle2, Edit3, Trash2 } from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { Plus, Flame, X } from "lucide-react";
 import { getHabits, createHabit, editHabit } from "../services/api";
 import HabitCard from "../components/HabitCard";
 import HabitForm from "./HabitForm";
@@ -7,6 +7,10 @@ import HabitForm from "./HabitForm";
 export default function Dashboard() {
   const [habits, setHabits] = useState([]);
   const [editingHabit, setEditingHabit] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isClosingModal, setIsClosingModal] = useState(false);
+  const [animatedCompleted, setAnimatedCompleted] = useState(0);
+  const prevCompletedRef = useRef(0);
 
   useEffect(() => {
     loadHabits();
@@ -19,158 +23,332 @@ export default function Dashboard() {
 
   async function handleCreate(newHabit) {
     await createHabit(newHabit);
+    closeCreateModal();
     loadHabits();
   }
 
   async function handleUpdate(updatedHabit) {
     await editHabit(editingHabit._id, updatedHabit);
-    setEditingHabit(null);
+    closeEditModal();
     loadHabits();
   }
 
-  const totalHabits = habits.length;
-  const activeStreaks = habits.filter((h) => h.streak && h.streak > 0).length;
+  const closeCreateModal = () => {
+    setIsClosingModal(true);
+    setTimeout(() => {
+      setShowCreateModal(false);
+      setIsClosingModal(false);
+    }, 200);
+  };
 
-  const recentActivity = habits.slice(0, 3);
-  const topStreaks = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0)).slice(0, 3);
+  const closeEditModal = () => {
+    setIsClosingModal(true);
+    setTimeout(() => {
+      setEditingHabit(null);
+      setIsClosingModal(false);
+    }, 200);
+  };
+
+  // Get user name from localStorage
+  const user = JSON.parse(localStorage.getItem('user'));
+  const userName = user?.name || user?.username || "there";
+
+  // Calculate today's habits
+  const totalHabits = habits.length;
+  const completedHabits = habits.filter(h => h.completedToday).length;
+  const remainingHabits = totalHabits - completedHabits;
+
+  // Animate completed count
+  useEffect(() => {
+    if (completedHabits !== prevCompletedRef.current) {
+      const duration = 400;
+      const startTime = Date.now();
+      const startValue = prevCompletedRef.current;
+      const endValue = completedHabits;
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const currentValue = Math.round(startValue + (endValue - startValue) * eased);
+        
+        setAnimatedCompleted(currentValue);
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          prevCompletedRef.current = endValue;
+        }
+      };
+      
+      requestAnimationFrame(animate);
+    }
+  }, [completedHabits]);
+
+  // Calculate weekly streak summary
+  const weeklyStreakTotal = habits.reduce((sum, h) => sum + (h.streak || 0), 0);
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
+
+  // Calculate progress percentage
+  const progressPercentage = totalHabits > 0 ? (completedHabits / totalHabits) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-dark-bg py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-dark-bg py-8 px-4 sm:px-6 lg:px-8 pb-24">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-accent-primary to-accent-cyan bg-clip-text text-transparent">
-              Welcome back! 👋
-            </h1>
-            <p className="text-text-muted">Track your progress and build better habits</p>
+        {/* TOP SECTION — TODAY */}
+        <div className="space-y-4 animate-slideUp" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+          <h1 className="text-4xl font-bold text-text-primary">
+            {getGreeting()}, {userName} 👋
+          </h1>
+          <div className="space-y-2">
+            <p className="text-lg text-text-muted">
+              {remainingHabits === 0 && totalHabits > 0 
+                ? "All done for today 🎉"
+                : remainingHabits === 1 
+                  ? "1 habit left today"
+                  : `${remainingHabits} habits left today`}
+            </p>
+            
+            {/* Progress Bar */}
+            {totalHabits > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-text-muted">Today's Progress</span>
+                  <span className="font-semibold text-text-primary">
+                    <span className="inline-block animate-numberChange">
+                      {animatedCompleted}
+                    </span>
+                    {' / '}
+                    {totalHabits}
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-dark-border rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-accent-primary to-accent-cyan transition-all duration-500 ease-out"
+                    style={{
+                      width: `${progressPercentage}%`,
+                      transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{totalHabits}</p>
-                <p className="text-text-muted text-sm">Active Habits</p>
-              </div>
-              <Target className="w-12 h-12 text-accent-primary opacity-50 group-hover:opacity-100 transition-opacity" />
-            </div>
-          </div>
-          
-          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">{activeStreaks}</p>
-                <p className="text-text-muted text-sm">Active Streaks</p>
-              </div>
-              <Calendar className="w-12 h-12 text-accent-cyan opacity-50 group-hover:opacity-100 transition-opacity" />
-            </div>
-          </div>
-          
-          <div className="card-gradient group hover:scale-[1.02] transition-all duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-3xl font-bold text-text-primary mb-1">
-                  {totalHabits ? `${Math.round((activeStreaks / totalHabits) * 100)}%` : "0%"}
-                </p>
-                <p className="text-text-muted text-sm">Completion Rate</p>
-              </div>
-              <Flame className="w-12 h-12 text-accent-secondary opacity-50 group-hover:opacity-100 transition-opacity" />
-            </div>
-          </div>
-        </div>
-
-        {/* Habit Form */}
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-6 text-text-primary">
-            {editingHabit ? "Edit Habit" : "Create a New Habit"}
-          </h2>
-          {editingHabit ? (
-            <HabitForm initialData={editingHabit} onSubmit={handleUpdate} onCancel={() => setEditingHabit(null)} />
-          ) : (
-            <HabitForm onSubmit={handleCreate} />
-          )}
-        </div>
-
-        {/* Habits and Sidebar */}
+        {/* MAIN CONTENT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Habit Cards Grid */}
+          {/* HABIT CARDS — CENTER STAGE */}
           <div className="lg:col-span-2">
-            <h2 className="text-2xl font-bold mb-6 text-text-primary">Your Habits</h2>
             {habits.length > 0 ? (
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-                {habits.map((h) => (
-                  <HabitCard
+                {habits.map((h, index) => (
+                  <div
                     key={h._id}
-                    habit={h}
-                    onEdit={() => setEditingHabit(h)}
-                    onUpdated={loadHabits}
-                  />
+                    className="animate-slideUp"
+                    style={{
+                      animationDelay: `${100 + index * 50}ms`,
+                      animationFillMode: 'both',
+                    }}
+                  >
+                    <HabitCard
+                      habit={h}
+                      onUpdated={loadHabits}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (
-              <div className="card text-center py-12">
-                <Target className="w-16 h-16 text-text-muted mx-auto mb-4 opacity-50" />
-                <p className="text-text-muted">No habits yet. Create your first one above!</p>
+              <div className="space-y-6">
+                {/* Empty State Header */}
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold text-text-primary">
+                    Here's how your habits will look once you start
+                  </h2>
+                  <p className="text-text-muted">
+                    Start with one small habit. Consistency beats intensity.
+                  </p>
+                </div>
+
+                {/* Demo Habit Cards */}
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+                  <div className="animate-slideUp" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+                    <HabitCard
+                      habit={{
+                        _id: 'demo-1',
+                        name: 'Drink Water',
+                        category: 'Health',
+                        completedToday: false,
+                        streak: 0
+                      }}
+                      demo={true}
+                      demoProgress={40}
+                    />
+                  </div>
+                  <div className="animate-slideUp" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
+                    <HabitCard
+                      habit={{
+                        _id: 'demo-2',
+                        name: 'Read 10 pages',
+                        category: 'Learning',
+                        completedToday: false,
+                        streak: 0
+                      }}
+                      demo={true}
+                      demoProgress={70}
+                    />
+                  </div>
+                  <div className="animate-slideUp sm:col-span-2" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+                    <HabitCard
+                      habit={{
+                        _id: 'demo-3',
+                        name: 'Morning Walk',
+                        category: 'Fitness',
+                        completedToday: false,
+                        streak: 0
+                      }}
+                      demo={true}
+                      demoProgress={55}
+                    />
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <div className="text-center pt-4">
+                  <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="btn-primary"
+                  >
+                    Start with one small habit
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Sidebar */}
+          {/* SIDEBAR */}
           <div className="space-y-6">
-            {/* Recent Activity */}
-            <div className="card">
-              <h3 className="text-lg font-semibold mb-4 text-text-primary">Recent Activity</h3>
-              {recentActivity.length > 0 ? (
-                <ul className="space-y-3">
-                  {recentActivity.map((h) => (
-                    <li key={h._id} className="flex items-center justify-between text-sm py-2 border-b border-dark-border last:border-0">
-                      <span className="text-text-secondary">{h.name}</span>
-                      <span className="text-green-400 font-semibold flex items-center gap-1">
-                        <CheckCircle2 size={14} />
-                        Today
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-text-muted">No recent check-ins</p>
-              )}
-            </div>
-
-            {/* Top Streaks */}
-            <div className="card">
+            {/* Weekly Streak Summary */}
+            <div className="card transition-all duration-250 ease-out hover:border-accent-primary/40 hover:shadow-glow/50 animate-slideUp" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
               <h3 className="text-lg font-semibold mb-4 text-text-primary flex items-center gap-2">
                 <Flame className="text-accent-primary" size={20} />
-                Top Streaks
+                Weekly Streak Summary
               </h3>
-              {topStreaks.length > 0 ? (
-                <ul className="space-y-3">
-                  {topStreaks.map((h, i) => (
-                    <li key={h._id} className="flex justify-between items-center text-sm py-2">
-                      <span className="text-text-secondary">
-                        <span className="text-accent-primary font-bold">#{i + 1}</span> {h.name}
-                      </span>
-                      <span className="font-bold text-accent-cyan">{h.streak} days</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-text-muted">No streaks yet</p>
-              )}
-            </div>
-
-            {/* Motivational Quote */}
-            <div className="card-gradient">
-              <p className="italic text-text-primary leading-relaxed">
-                "Small daily improvements over time lead to stunning results."
-              </p>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">Total Streak Days</span>
+                  <span className="font-bold text-text-primary">{weeklyStreakTotal}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">Active Streaks</span>
+                  <span className="font-bold text-text-primary">
+                    {habits.filter(h => h.streak && h.streak > 0).length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-text-secondary">Completed Today</span>
+                  <span className="font-bold text-text-primary">
+                    <span className="inline-block animate-numberChange">
+                      {animatedCompleted}
+                    </span>
+                    {' / '}
+                    {totalHabits}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* FLOATING ADD HABIT BUTTON */}
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-full bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-cyan text-white flex items-center justify-center z-50 transition-all duration-250 ease-out hover:scale-110 hover:shadow-xl hover:shadow-accent-primary/60 active:scale-95 animate-pulse-soft"
+        aria-label="Add Habit"
+      >
+        <Plus size={28} />
+      </button>
+
+      {/* CREATE HABIT MODAL */}
+      {showCreateModal && (
+        <div 
+          className={`fixed inset-0 z-50 p-4 flex items-center justify-center ${
+            isClosingModal ? 'animate-fadeScaleOut' : 'animate-fadeScaleIn'
+          }`}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          }}
+          onClick={closeCreateModal}
+        >
+          <div
+            className="card max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              animation: isClosingModal ? 'fadeScaleOut 0.2s ease-in' : 'fadeScaleIn 0.3s ease-out',
+            }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-text-primary">Create New Habit</h2>
+              <button
+                onClick={closeCreateModal}
+                className="text-text-muted hover:text-text-primary transition-colors"
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <HabitForm 
+              onSubmit={handleCreate} 
+              onCancel={closeCreateModal}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* EDIT HABIT MODAL */}
+      {editingHabit && (
+        <div 
+          className={`fixed inset-0 z-50 p-4 flex items-center justify-center ${
+            isClosingModal ? 'animate-fadeScaleOut' : 'animate-fadeScaleIn'
+          }`}
+          style={{
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          }}
+          onClick={closeEditModal}
+        >
+          <div
+            className="card max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              animation: isClosingModal ? 'fadeScaleOut 0.2s ease-in' : 'fadeScaleIn 0.3s ease-out',
+            }}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-text-primary">Edit Habit</h2>
+              <button
+                onClick={closeEditModal}
+                className="text-text-muted hover:text-text-primary transition-colors"
+                aria-label="Close"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <HabitForm
+              initialData={editingHabit}
+              onSubmit={handleUpdate}
+              onCancel={closeEditModal}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
