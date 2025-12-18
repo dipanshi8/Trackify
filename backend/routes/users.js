@@ -41,50 +41,6 @@ router.get('/search', auth, async (req, res) => {
 });
 
 /**
- * GET /api/users/:id
- * Get user info for profile page
- */
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id || !require('mongoose').Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
-    }
-
-    const user = await User.findById(id)
-      .select('-passwordHash')
-      .populate('followers', 'username email _id')
-      .populate('following', 'username email _id');
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Get user's habits
-    const habits = await require('../models/Habit').find({ userId: id });
-
-    // Recent check-ins
-    const recentCheckins = await CheckIn.find({ userId: id })
-      .sort({ timestamp: -1 })
-      .limit(5)
-      .populate('habitId', 'name');
-
-    return res.json({
-      ...user.toObject(),
-      habits: habits || [],
-      recentCheckins: recentCheckins.map(c => ({
-        habitTitle: c.habitId ? c.habitId.name : 'Habit deleted',
-        timestamp: c.timestamp,
-      })),
-    });
-  } catch (err) {
-    console.error('Get user error:', err);
-    return res.status(500).json({ message: 'Could not load profile. Please try again.' });
-  }
-});
-
-/**
  * GET /api/users/:id/habits
  * Optional: get only habits of a user
  */
@@ -135,6 +91,75 @@ router.get('/:id/habits', auth, async (req, res) => {
   } catch (err) {
     console.error('Get habits error:', err);
     return res.status(500).json({ message: 'Could not load habits.' });
+  }
+});
+
+/**
+ * GET /api/users/:id/checkins
+ * Get all checkins for a user (for heatmap)
+ * NOTE: Must be defined before /:id route to avoid route conflicts
+ */
+router.get('/:id/checkins', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !require('mongoose').Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    const checkins = await CheckIn.find({ userId: id })
+      .select('timestamp date')
+      .sort({ timestamp: 1 });
+
+    return res.json(checkins);
+  } catch (err) {
+    console.error('Get checkins error:', err);
+    return res.status(500).json({ message: 'Could not load checkins.' });
+  }
+});
+
+/**
+ * GET /api/users/:id
+ * Get user info for profile page
+ * NOTE: Must be defined after specific routes like /:id/habits and /:id/checkins
+ */
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !require('mongoose').Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    const user = await User.findById(id)
+      .select('-passwordHash')
+      .populate('followers', 'username email _id')
+      .populate('following', 'username email _id');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Get user's habits
+    const habits = await require('../models/Habit').find({ userId: id });
+
+    // Recent check-ins
+    const recentCheckins = await CheckIn.find({ userId: id })
+      .sort({ timestamp: -1 })
+      .limit(5)
+      .populate('habitId', 'name');
+
+    return res.json({
+      ...user.toObject(),
+      habits: habits || [],
+      recentCheckins: recentCheckins.map(c => ({
+        habitTitle: c.habitId ? c.habitId.name : 'Habit deleted',
+        timestamp: c.timestamp,
+      })),
+    });
+  } catch (err) {
+    console.error('Get user error:', err);
+    return res.status(500).json({ message: 'Could not load profile. Please try again.' });
   }
 });
 

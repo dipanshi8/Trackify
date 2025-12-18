@@ -1,147 +1,78 @@
-Trackify – Habit Tracker
+# ✍️ Trackify  
 
-A full-stack habit tracking web app that helps users build habits, stay consistent, and stay motivated.
-With personal dashboards, daily check-ins, social features (follow/unfollow), and a live feed, Trackify turns self-improvement into a community experience.
+> A full-stack habit tracker that helps users **build consistency, stay motivated, and grow together** through daily habits, streaks, and social accountability.
 
-✨ Features
+---
 
-🔐 Authentication – Register/Login with JWT
+## 📌 Overview
 
-✅ Habit Management – Create, edit, delete, and check-in habits
+**Trackify** is a **full-stack web app** that combines personal habit tracking with social features.  
+Users can create habits, check in daily, track streaks, follow friends, and see activity feeds to stay motivated.
 
-🔄 Daily Streaks – Track progress with streak counters
+This repository contains the **frontend and backend** built using **React, Node.js, Express, MongoDB, and JWT**.
 
-👥 Social Features – Follow/unfollow users
+---
 
-📰 Personalized Feed – See recent check-ins from people you follow
+## 🚀 Features
 
-👤 Profile Page – View insights, habits, and recent activity
+- 🔐 **Authentication** – Register/Login with JWT  
+- ✅ **Habit Management** – Create, edit, delete, and check-in habits  
+- 🔥 **Daily Streaks** – Track progress and streak counters  
+- 👥 **Social Features** – Follow/unfollow users  
+- 📰 **Personalized Feed** – View activity from followed users  
+- 👤 **Profile Page** – Track habits, streaks, and recent activity  
 
-DEMO :
+---
 
-## Signup Page
-![signup Page](signup.png)
+## 🖼️ Screenshots
 
-## Signin Page
-![signin Page](signin.png)
+### Frontend UI
 
-## Home Page
-![Home Page](home.png)
+#### Authentication
+<p align="center">
+  <img src="screenshots/signin.jpeg" width="45%" />
+  <img src="screenshots/signup.jpeg" width="45%" />
+</p>
 
-## Dashboard
-![Dashboard](dashboard.png)
+#### Homepage & Landing
+<p align="center">
+  <img src="screenshots/home_page.jpeg" width="30%" />
+  <img src="screenshots/homepage.jpeg" width="30%" />
+  <img src="screenshots/homepagee.jpeg" width="30%" />
+</p>
 
-## Friends Feed
-![Friends Feed](friends.png)
+#### Dashboard & Writing
+<p align="center">
+  <img src="screenshots/dashboard.jpeg" width="30%" />
+  <img src="screenshots/write.jpeg" width="30%" />
+  <img src="screenshots/document.jpeg" width="30%" />
+</p>
 
-## Profile
-![Profile](/profile.png)
+---
 
+## 🛠️ Tech Stack
 
+- **Frontend:** React (Vite/CRA), Tailwind CSS, Axios  
+- **Backend:** Node.js, Express, MongoDB (Mongoose), JWT  
+- **Deployment:** Frontend → Vercel, Backend → Render, Database → MongoDB Atlas  
 
+---
 
-🛠️ Tech Stack
+## ▶️ Run Locally
 
-Frontend
+```bash
+# Clone repository
+git clone https://github.com/dipanshi8/Trackify.git
+cd Trackify
 
-React (Vite / CRA)
-
-Tailwind CSS for styling
-
-Axios for API calls
-
-Backend
-
-Node.js + Express
-
-MongoDB (Mongoose ODM)
-
-JWT for authentication
-
-Deployment
-
-Frontend → Vercel
-
-Backend → Render
-
-Database → MongoDB Atlas
-
-⚙️ Setup Instructions
-1. Clone the Repository
-git clone https://github.com/dipanshi8/trackify.git
-cd trackify
-
-2. Backend Setup
+# Backend setup
 cd backend
 npm install
-
-
-Create a .env file in backend/:
-
-PORT=5000
-MONGO_URI=mongodb+srv://yaduvanshidips25_db_user:baN8ufhQqU0qGmGs@trackify.of744pl.mongodb.net/?retryWrites=true&w=majority&appName=Trackify
-JWT_SECRET=Hellu@1212
-FRONTEND_URL=https://trackify-ggjb.vercel.app/
-
-
-Run backend:
-
+# Create .env with PORT, MONGO_URI, JWT_SECRET, FRONTEND_URL
 npm start
 
-3. Frontend Setup
-cd frontend
+# Frontend setup
+cd ../frontend
 npm install
-
-
-Create a .env file in frontend/:
-
-REACT_APP_API_URL=http://localhost:5000/api
-
-
-Run frontend:
-
+# Create .env with REACT_APP_API_URL=http://localhost:5000/api
 npm start
-
-📦 API Endpoints
-Auth
-
-POST /api/auth/register → Register user
-
-POST /api/auth/login → Login user
-
-Habits
-
-GET /api/habits → Get user habits
-
-POST /api/habits → Create habit
-
-PUT /api/habits/:id → Edit habit
-
-DELETE /api/habits/:id → Delete habit
-
-POST /api/habits/:id/checkin → Daily check-in
-
-Users
-
-GET /api/users/:id → Get user profile
-
-GET /api/users/:id/habits → Get user’s habits
-
-POST /api/users/:id/follow → Follow user
-
-POST /api/users/:id/unfollow → Unfollow user
-
-GET /api/users/feed → Get activity feed
-
-
-
-
-
-
-
-
-
-
-
-
-

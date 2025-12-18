@@ -1,42 +1,64 @@
 import { useState, useEffect, useRef } from "react";
-import { CheckCircle2, Flame, Eye } from "lucide-react";
+import { CheckCircle2, Flame, Eye, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { checkinHabit } from "../services/api";
 
-function HabitCard({ habit, onUpdated, demo = false, demoProgress = 0 }) {
+function HabitCard({ habit, onUpdated, onEdit, onDelete, demo = false, demoProgress = 0 }) {
   const [loading, setLoading] = useState(false);
   const [justCompleted, setJustCompleted] = useState(false);
   const [showGlow, setShowGlow] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [animatedProgress, setAnimatedProgress] = useState(demo ? demoProgress : 0);
+  const [showMenu, setShowMenu] = useState(false);
+  const [optimisticCompleted, setOptimisticCompleted] = useState(null); // null = use server state, true/false = optimistic state
   const progressCircleRef = useRef(null);
+  const menuRef = useRef(null);
   const wasCompletedRef = useRef(habit.completedToday);
 
   const handleMarkDone = async () => {
     if (demo) return; // Disable interactions in demo mode
     
+    // Store previous state for rollback
+    const previousCompleted = habit.completedToday;
+    
+    // Optimistic update: immediately show as completed
+    setOptimisticCompleted(true);
+    setJustCompleted(true);
+    setShowGlow(true);
+    setShowMessage(true);
+    
+    // Start animations immediately
+    setTimeout(() => setShowGlow(false), 800);
+    setTimeout(() => setShowMessage(false), 2500);
+    setTimeout(() => setJustCompleted(false), 900);
+    
     try {
-      setLoading(true);
-      await checkinHabit(habit._id);
-      
-      // Trigger completion animation sequence
-      setJustCompleted(true);
-      setShowGlow(true);
-      setShowMessage(true);
-      
-      // Reset animations after completion
-      setTimeout(() => setShowGlow(false), 800);
-      setTimeout(() => setShowMessage(false), 2500); // Message stays longer
-      setTimeout(() => setJustCompleted(false), 900);
-      
-      if (onUpdated) onUpdated();
+      // Success: keep optimistic state, refresh from server
+      if (onUpdated) {
+        // Pass habitId to onUpdated so it can update global state
+        await onUpdated(habit._id);
+      } else {
+        // Fallback: make API call directly if no onUpdated handler
+        await checkinHabit(habit._id);
+      }
+      // Reset optimistic state after server confirms (via onUpdated)
+      // The habit.completedToday will be updated from server
     } catch (err) {
       console.error("Error checking in:", err);
-    } finally {
-      setLoading(false);
+      
+      // Rollback: revert to previous state
+      setOptimisticCompleted(previousCompleted);
+      setJustCompleted(false);
+      setShowGlow(false);
+      setShowMessage(false);
+      
+      // Show error toast
+      toast.error('Failed to update. Please try again.');
     }
   };
 
-  const completed = demo ? false : habit.completedToday;
+  // Use optimistic state if available, otherwise fall back to server state
+  const completed = demo ? false : (optimisticCompleted !== null ? optimisticCompleted : habit.completedToday);
   const streak = habit.streak || 0;
   const hasStreakBadge = streak > 3;
 
@@ -44,6 +66,14 @@ function HabitCard({ habit, onUpdated, demo = false, demoProgress = 0 }) {
   const progress = demo ? demoProgress : (completed ? 100 : 0);
   const circumference = 2 * Math.PI * 28;
   const offset = circumference - (animatedProgress / 100) * circumference;
+
+  // Reset optimistic state when habit updates from server
+  useEffect(() => {
+    if (optimisticCompleted !== null && habit.completedToday === optimisticCompleted) {
+      // Server state matches optimistic state, reset to null to use server state
+      setOptimisticCompleted(null);
+    }
+  }, [habit.completedToday, optimisticCompleted]);
 
   // Animate progress ring on mount and when completed changes
   useEffect(() => {
@@ -125,6 +155,33 @@ function HabitCard({ habit, onUpdated, demo = false, demoProgress = 0 }) {
     }
   }, []);
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMenu]);
+
+  const handleEdit = () => {
+    setShowMenu(false);
+    if (onEdit) onEdit(habit);
+  };
+
+  const handleDelete = () => {
+    setShowMenu(false);
+    if (onDelete) onDelete(habit);
+  };
+
   return (
     <div
       className={`card relative ${
@@ -157,6 +214,46 @@ function HabitCard({ habit, onUpdated, demo = false, demoProgress = 0 }) {
             <Eye size={12} className="text-accent-primary" />
             <span className="text-xs font-semibold text-accent-primary">Preview</span>
           </div>
+        </div>
+      )}
+
+      {/* Menu Button - Only show for real habits */}
+      {!demo && (
+        <div className="absolute top-3 right-3 z-20" ref={menuRef}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-dark-hover transition-all duration-200"
+            aria-label="More options"
+          >
+            <MoreVertical size={18} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showMenu && (
+            <div className="absolute right-0 top-10 mt-1 w-48 bg-dark-card/95 backdrop-blur-md border border-dark-border rounded-lg shadow-lg py-1 z-30 animate-fadeIn"
+              style={{
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <button
+                onClick={handleEdit}
+                className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-accent-primary/10 hover:text-accent-primary transition-colors duration-200 flex items-center gap-3"
+              >
+                <Pencil size={16} className="text-accent-primary" />
+                <span>Edit Habit</span>
+              </button>
+              <button
+                onClick={handleDelete}
+                className="w-full px-4 py-2.5 text-left text-sm text-text-primary hover:bg-red-500/10 hover:text-red-400 transition-colors duration-200 flex items-center gap-3"
+              >
+                <Trash2 size={16} className="text-red-400" />
+                <span>Delete Habit</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 

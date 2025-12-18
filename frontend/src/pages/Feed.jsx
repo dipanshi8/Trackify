@@ -1,12 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from "react-router-dom";
-import { UserPlus, UserCheck, Flame, Eye } from "lucide-react";
+import { UserPlus, UserCheck, Flame, Sparkles } from "lucide-react";
+import { formatDistanceToNow } from 'date-fns';
 import { getFeed, searchUsers, followUser } from '../services/api';
 
 export default function Feed() {
   const [feed, setFeed] = useState([]);
   const [q, setQ] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [reactions, setReactions] = useState({}); // { feedItemId: { count: number, userReacted: boolean } }
 
   const loadFeed = async () => {
     try { const res = await getFeed(); setFeed(res); } 
@@ -33,112 +35,46 @@ export default function Feed() {
     } catch (err) { console.error(err); }
   };
 
-  // Example Activity Card Component
-  const ExampleActivityCard = ({ username, habit, streak, category, delay }) => {
-    const [animatedProgress, setAnimatedProgress] = useState(0);
-    const progressRef = useRef(null);
-    const circumference = 2 * Math.PI * 20; // radius 20
-    const targetProgress = Math.min((streak / 14) * 100, 100); // Cap at 100%
-    const offset = circumference - (animatedProgress / 100) * circumference;
-
-    useEffect(() => {
-      const duration = 800;
-      const startTime = Date.now();
+  // Initialize reactions from feed data (local state for now, can be connected to DB later)
+  useEffect(() => {
+    if (feed.length === 0) return;
+    
+    setReactions(prev => {
+      const newReactions = { ...prev };
+      let hasNew = false;
       
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const progressRatio = Math.min(elapsed / duration, 1);
-        const eased = 1 - Math.pow(1 - progressRatio, 3);
-        const newProgress = targetProgress * eased;
-        
-        setAnimatedProgress(newProgress);
-        
-        if (progressRatio < 1) {
-          requestAnimationFrame(animate);
+      feed.forEach(item => {
+        if (!newReactions[item._id]) {
+          newReactions[item._id] = {
+            count: 0, // Start with 0, can be loaded from API later
+            userReacted: false
+          };
+          hasNew = true;
+        }
+      });
+      
+      return hasNew ? newReactions : prev;
+    });
+  }, [feed]);
+
+  const toggleReaction = (itemId) => {
+    setReactions(prev => {
+      const current = prev[itemId] || { count: 0, userReacted: false };
+      return {
+        ...prev,
+        [itemId]: {
+          count: current.userReacted ? current.count - 1 : current.count + 1,
+          userReacted: !current.userReacted
         }
       };
-      
-      requestAnimationFrame(animate);
-    }, [targetProgress]);
-
-    const categoryStyles = {
-      'Fitness': 'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30',
-      'Learning': 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30',
-      'Health': 'bg-green-500/20 text-green-400 border border-green-500/30',
-    };
-
-    return (
-      <div 
-        className="p-4 rounded-lg bg-dark-hover/60 border border-dashed border-accent-primary/30 relative animate-slideUp opacity-75" 
-        style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}
-      >
-        {/* Example Badge */}
-        <div className="absolute top-3 right-3 z-10">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent-primary/20 border border-accent-primary/40 backdrop-blur-sm">
-            <Eye size={12} className="text-accent-primary" />
-            <span className="text-xs font-semibold text-accent-primary">Example activity</span>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-4 pr-20">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent-secondary to-accent-cyan flex items-center justify-center font-bold text-white text-lg shadow-lg flex-shrink-0">
-            {username.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm text-text-secondary mb-1">
-              <span className="text-accent-primary font-semibold">{username}</span>
-              {' '}completed <span className="text-text-primary font-medium">'{habit}'</span> for {streak} days straight 🔥
-            </p>
-            <div className="flex items-center gap-4 mt-3">
-              {/* Progress Ring */}
-              <div className="relative w-10 h-10 flex-shrink-0">
-                <svg className="transform -rotate-90 w-10 h-10" ref={progressRef}>
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="18"
-                    stroke="#1f2937"
-                    strokeWidth="3"
-                    fill="none"
-                  />
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="18"
-                    stroke="#6366f1"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    strokeLinecap="round"
-                    style={{
-                      transition: 'stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-                    }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-text-primary/70">
-                    {Math.round(animatedProgress)}%
-                  </span>
-                </div>
-              </div>
-              {/* Streak Badge */}
-              <div className="flex items-center gap-1.5">
-                <Flame className="text-accent-primary" size={16} />
-                <span className="text-xs font-medium text-accent-primary">{streak}-day streak</span>
-              </div>
-            </div>
-          </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${categoryStyles[category] || categoryStyles['Learning']}`}>
-            {category}
-          </span>
-        </div>
-      </div>
-    );
+    });
+    // TODO: Add API call to persist reaction when backend is ready
   };
 
-  // Real Feed Activity Card Component
+  // Feed Activity Card Component
   const FeedActivityCard = ({ item, delay }) => {
+    const reaction = reactions[item._id] || { count: 0, userReacted: false };
+    const relativeTime = formatDistanceToNow(new Date(item.timestamp), { addSuffix: true });
     return (
       <div 
         className="p-4 rounded-lg bg-dark-hover border border-dark-border hover:border-accent-primary/50 transition-all group animate-slideUp"
@@ -165,7 +101,26 @@ export default function Feed() {
                   <span>{item.streak}-day streak</span>
                 </div>
               )}
-              <span>• {new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              <span>• {relativeTime}</span>
+            </div>
+            
+            {/* Actions Row */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-dark-border">
+              {/* Congrats Button */}
+              <button
+                onClick={() => toggleReaction(item._id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  reaction.userReacted
+                    ? 'bg-accent-primary/20 text-accent-primary border border-accent-primary/30'
+                    : 'bg-dark-card text-text-muted border border-dark-border hover:border-accent-primary/50 hover:text-accent-primary'
+                }`}
+              >
+                <span className="text-base">🎉</span>
+                <span>Congrats</span>
+                {reaction.count > 0 && (
+                  <span className="ml-1 text-xs">({reaction.count})</span>
+                )}
+              </button>
             </div>
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
@@ -255,27 +210,14 @@ export default function Feed() {
                 Friends' Activity
               </h2>
               {feed.length === 0 ? (
-                <div className="space-y-4">
-                  {/* Example Activity Cards */}
-                  <ExampleActivityCard 
-                    username="Ananya"
-                    habit="Morning Walk"
-                    streak={7}
-                    category="Fitness"
-                    delay={0}
-                  />
-                  <ExampleActivityCard 
-                    username="Marcus"
-                    habit="Read 10 pages"
-                    streak={12}
-                    category="Learning"
-                    delay={100}
-                  />
-                  
-                  {/* Empty State Message */}
-                  <div className="text-center py-8 mt-6 animate-slideUp" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-                    <p className="text-text-muted text-lg mb-2">Follow people to stay inspired by their consistency</p>
-                    <p className="text-text-muted/70 text-sm">Their progress will appear here as they build their habits</p>
+                <div className="text-center py-12 animate-slideUp" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+                  <div className="max-w-md mx-auto space-y-4">
+                    <div className="w-16 h-16 mx-auto rounded-full bg-dark-hover border border-dark-border flex items-center justify-center">
+                      <UserPlus size={32} className="text-text-muted" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-text-primary">Your feed is empty</h3>
+                    <p className="text-text-muted">Follow people to see their habit completions here</p>
+                    <p className="text-text-muted/70 text-sm">Use the search bar on the left to find friends and start following them</p>
                   </div>
                 </div>
               ) : (

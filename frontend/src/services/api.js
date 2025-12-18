@@ -53,3 +53,7 @@ export async function getUserProfile(id) {
   return API.get(`/users/${id}`).then(r => r.data);
 }
 
+export async function getUserCheckins(id) {
+  return API.get(`/users/${id}/checkins`).then((r) => r.data);
+}
+

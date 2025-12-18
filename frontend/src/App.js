@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 
 import Navbar from './components/Navbar';
 import SignIn from './pages/SignIn';
@@ -10,6 +11,7 @@ import Feed from './pages/Feed';
 import SearchUsers from './pages/SearchUsers';
 
 import Profile from "./pages/Profile";
+import { HabitDataProvider } from './hooks/useHabitData';
 
 function App() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
@@ -23,8 +25,10 @@ function App() {
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       <Navbar user={user} setUser={setUser} />
-      <Routes>
+      <HabitDataProvider userId={user?._id || user?.id}>
+        <Routes>
         <Route path="/" element={<Navigate to="/dashboard" />} />
         <Route path="/signin" element={<SignIn setUser={setUser} />} />
         <Route path="/signup" element={<SignUp setUser={setUser} />} />
@@ -73,7 +77,8 @@ function App() {
 
 
         <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+        </Routes>
+      </HabitDataProvider>
     </>
   );
 }

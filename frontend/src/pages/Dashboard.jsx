@@ -1,36 +1,64 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Plus, Flame, X } from "lucide-react";
-import { getHabits, createHabit, editHabit } from "../services/api";
+import { toast } from "sonner";
+import { createHabit, editHabit, deleteHabit } from "../services/api";
+import { useHabitData } from "../hooks/useHabitData";
 import HabitCard from "../components/HabitCard";
+import HabitCardSkeleton from "../components/HabitCardSkeleton";
 import HabitForm from "./HabitForm";
 
 export default function Dashboard() {
-  const [habits, setHabits] = useState([]);
+  const { habits, loading, loadHabits, markHabitDone } = useHabitData();
   const [editingHabit, setEditingHabit] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isClosingModal, setIsClosingModal] = useState(false);
   const [animatedCompleted, setAnimatedCompleted] = useState(0);
   const prevCompletedRef = useRef(0);
 
-  useEffect(() => {
-    loadHabits();
-  }, []);
-
-  async function loadHabits() {
-    const data = await getHabits();
-    setHabits(data);
-  }
-
   async function handleCreate(newHabit) {
     await createHabit(newHabit);
     closeCreateModal();
-    loadHabits();
+    await loadHabits();
   }
 
   async function handleUpdate(updatedHabit) {
     await editHabit(editingHabit._id, updatedHabit);
     closeEditModal();
-    loadHabits();
+    await loadHabits();
+  }
+
+  async function handleDelete(habit) {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${habit.name}"?\n\nThis action cannot be undone.`
+    );
+    
+    if (confirmed) {
+      try {
+        await deleteHabit(habit._id);
+        toast.success('Habit deleted successfully');
+        await loadHabits();
+      } catch (err) {
+        console.error("Error deleting habit:", err);
+        toast.error('Failed to delete habit. Please try again.');
+      }
+    }
+  }
+
+  // Handle habit completion - uses global state
+  async function handleHabitDone(habitId) {
+    try {
+      await markHabitDone(habitId);
+      // The global state is already updated, just refresh habits
+      await loadHabits();
+    } catch (err) {
+      console.error("Error marking habit as done:", err);
+      throw err;
+    }
+  }
+
+  function handleEdit(habit) {
+    setEditingHabit(habit);
   }
 
   const closeCreateModal = () => {
@@ -147,7 +175,24 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* HABIT CARDS — CENTER STAGE */}
           <div className="lg:col-span-2">
-            {habits.length > 0 ? (
+            {loading ? (
+              // Loading State - Show Skeletons
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
+                {[1, 2, 3, 4].map((index) => (
+                  <div
+                    key={`skeleton-${index}`}
+                    className="animate-slideUp"
+                    style={{
+                      animationDelay: `${100 + index * 50}ms`,
+                      animationFillMode: 'both',
+                    }}
+                  >
+                    <HabitCardSkeleton />
+                  </div>
+                ))}
+              </div>
+            ) : habits.length > 0 ? (
+              // Has Habits - Show Real Cards
               <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
                 {habits.map((h, index) => (
                   <div
@@ -160,73 +205,28 @@ export default function Dashboard() {
                   >
                     <HabitCard
                       habit={h}
-                      onUpdated={loadHabits}
+                      onUpdated={handleHabitDone}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
                     />
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="space-y-6">
-                {/* Empty State Header */}
-                <div className="text-center space-y-2">
+              // Empty State - No Demo Cards
+              <div className="card text-center py-12">
+                <div className="space-y-4">
                   <h2 className="text-2xl font-bold text-text-primary">
-                    Here's how your habits will look once you start
+                    No habits yet
                   </h2>
                   <p className="text-text-muted">
-                    Start with one small habit. Consistency beats intensity.
+                    Create your first habit and begin your journey to consistency
                   </p>
-                </div>
-
-                {/* Demo Habit Cards */}
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2">
-                  <div className="animate-slideUp" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
-                    <HabitCard
-                      habit={{
-                        _id: 'demo-1',
-                        name: 'Drink Water',
-                        category: 'Health',
-                        completedToday: false,
-                        streak: 0
-                      }}
-                      demo={true}
-                      demoProgress={40}
-                    />
-                  </div>
-                  <div className="animate-slideUp" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
-                    <HabitCard
-                      habit={{
-                        _id: 'demo-2',
-                        name: 'Read 10 pages',
-                        category: 'Learning',
-                        completedToday: false,
-                        streak: 0
-                      }}
-                      demo={true}
-                      demoProgress={70}
-                    />
-                  </div>
-                  <div className="animate-slideUp sm:col-span-2" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-                    <HabitCard
-                      habit={{
-                        _id: 'demo-3',
-                        name: 'Morning Walk',
-                        category: 'Fitness',
-                        completedToday: false,
-                        streak: 0
-                      }}
-                      demo={true}
-                      demoProgress={55}
-                    />
-                  </div>
-                </div>
-
-                {/* CTA Button */}
-                <div className="text-center pt-4">
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="btn-primary"
+                    className="btn-primary mt-4"
                   >
-                    Start with one small habit
+                    Add Habit
                   </button>
                 </div>
               </div>

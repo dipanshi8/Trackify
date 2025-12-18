@@ -287,3 +287,56 @@
     }
   }
 }
+
+/* Calendar Heatmap Styles */
+.react-calendar-heatmap {
+  font-family: inherit;
+}
+
+.react-calendar-heatmap rect {
+  rx: 3;
+  ry: 3;
+  transition: fill 0.2s ease;
+}
+
+.react-calendar-heatmap .color-empty {
+  fill: #1a1a2e;
+}
+
+.react-calendar-heatmap .color-scale-1 {
+  fill: #6366f1;
+  opacity: 0.4;
+}
+
+.react-calendar-heatmap .color-scale-2 {
+  fill: #8b5cf6;
+  opacity: 0.6;
+}
+
+.react-calendar-heatmap .color-scale-3 {
+  fill: #a855f7;
+  opacity: 0.8;
+}
+
+.react-calendar-heatmap .color-scale-4 {
+  fill: #c084fc;
+  opacity: 1;
+}
+
+.react-calendar-heatmap rect:hover {
+  stroke: #6366f1;
+  stroke-width: 2;
+}
+
+/* Tooltip styling */
+.react-calendar-heatmap rect[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  background: #1f2937;
+  color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 1000;
+}
