@@ -30,23 +30,25 @@ This repository contains the **frontend and backend** built using **React, Node.
 
 #### Authentication
 <p align="center">
-  <img src="screenshots/signin.jpeg" width="45%" />
-  <img src="screenshots/signup.jpeg" width="45%" />
+  <img src="screenshots/auth1.png" width="45%" />
+  <img src="screenshots/auth2.png" width="45%" />
 </p>
 
-#### Homepage & Landing
+#### Dashboard
 <p align="center">
-  <img src="screenshots/home_page.jpeg" width="30%" />
-  <img src="screenshots/homepage.jpeg" width="30%" />
-  <img src="screenshots/homepagee.jpeg" width="30%" />
+  <img src="screenshots/dash1.png" width="30%" />
+  <img src="screenshots/dash2.png" width="30%" />
+  <img src="screenshots/dash3.png" width="30%" />
 </p>
 
-#### Dashboard & Writing
+#### Feed & Profile
 <p align="center">
-  <img src="screenshots/dashboard.jpeg" width="30%" />
-  <img src="screenshots/write.jpeg" width="30%" />
-  <img src="screenshots/document.jpeg" width="30%" />
+  <img src="screenshots/notification.png" width="30%" />
+  <img src="screenshots/profile1.png" width="30%" />
+  <img src="screenshots/profile2.png" width="30%" />
 </p>
+
+
 
 ---
 
